@@ -1,25 +1,49 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { ChangeEvent, useState } from 'react';
 import './App.css';
+import { useHackerNewsApi } from './hooks/useHackerNewsApi';
 
 function App() {
+  const [query, setQuery] = useState<string>('react');
+  const [setUrl, { isLoading, isError, data }] = useHackerNewsApi(
+    {
+      hits: [],
+    },
+    `http://hn.algolia.com/api/v1/search?query=${query}`
+  );
+
+  const changeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <form
+        onSubmit={(event) => {
+          setUrl(`http://hn.algolia.com/api/v1/search?query=${query}`);
+          event.preventDefault();
+        }}
+      >
+        <input
+          value={query}
+          onChange={changeHandler}
+          placeholder='Search'
+          type='text'
+        />
+        <button type='submit'>Search</button>
+      </form>
+      {isError && <div>Something wrong...</div>}
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <ul>
+          {data.hits.map((item) => (
+            <li key={item.objectID}>
+              <a href={item.url}>{item.title}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
